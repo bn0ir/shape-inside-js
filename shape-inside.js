@@ -25,6 +25,7 @@ function shapeinside(element, shape, options){
     while (shapetext.length){
       var fp = getfirstpoint(arshape, sheight, fpy);
       var lp = getlastpoint(arshape, sheight, fpy);
+      console.log([fp, lp]);
       if (isNaN(fp[0])){
         fp[0] = 0;
       }
@@ -69,7 +70,7 @@ function getfirstpoint(arshape, sheight, fpy){
     var cflag = false;
     //get points between top of string and bot of string
     for (ari in arshape){
-        if (arshape[ari][1]>fpy && arshape[ari][1]<(fpy+sheight) && arshape[ari][0]<(awidth/2 + minwx) && arshape[ari][0]>maxfx){
+        if (arshape[ari][1]>=fpy && arshape[ari][1]<=(fpy+sheight) && arshape[ari][0]<(awidth/2 + minwx) && arshape[ari][0]>maxfx){
             maxfx = arshape[ari][0];
             cflag = true;
         }
@@ -78,8 +79,15 @@ function getfirstpoint(arshape, sheight, fpy){
         var mintp = [];
         var minbp = [];
         var cc = 999999999;
+        var lx = 0;
         for (ari in arshape){
-            if (ari!=(arshape.length-1) && ((arshape[ari][1]-fpy)*(arshape[parseInt(ari)+1][1]-fpy))<0 && (Math.abs(arshape[ari][1]-fpy)+Math.abs(arshape[parseInt(ari)+1][1]-fpy))<cc && (arshape[ari][0]<(awidth/2 + minwx) || arshape[parseInt(ari)+1][0]<(awidth/2 + minwx))){
+            if (ari==(arshape.length-1)){
+                break;
+            }
+            // point ari -> ari+1 line cross y=fpy
+            lx = (arshape[ari][0]*arshape[parseInt(ari)+1][1]-arshape[parseInt(ari)+1][0]*arshape[ari][1]-(arshape[ari][0]-arshape[parseInt(ari)+1][0])*fpy)/(arshape[parseInt(ari)+1][1]-arshape[ari][1]);
+            // is lx between ari and ari+1, is fpy between ari and ari+1, is lx min
+            if (((arshape[ari][1]-fpy)*(arshape[parseInt(ari)+1][1]-fpy))<0 && ((arshape[ari][0]-lx)*(arshape[parseInt(ari)+1][0]-lx))<0 && lx<cc){
                 if (arshape[ari][1]>arshape[parseInt(ari)+1][1]){
                     mintp = arshape[ari];
                     minbp = arshape[parseInt(ari)+1];
@@ -88,6 +96,7 @@ function getfirstpoint(arshape, sheight, fpy){
                     mintp = arshape[parseInt(ari)+1];
                     minbp = arshape[ari];
                 }
+                cc = lx;
             }
         }
         //get maxfx from line formula
@@ -118,11 +127,11 @@ function getlastpoint(arshape, sheight, fpy){
         }
     }
     var awidth = maxwx-minwx;
-    var maxfx = 0;
+    var maxfx = 999999999;
     var cflag = false;
     //get points between top of string and bot of string
     for (ari in arshape){
-        if (arshape[ari][1]>fpy && arshape[ari][1]<(fpy+sheight) && arshape[ari][0]>(awidth/2 + minwx) && arshape[ari][0]<maxfx){
+        if (arshape[ari][1]>=fpy && arshape[ari][1]<=(fpy+sheight) && arshape[ari][0]>(awidth/2 + minwx) && arshape[ari][0]<maxfx){
             maxfx = arshape[ari][0];
             cflag = true;
         }
@@ -130,9 +139,16 @@ function getlastpoint(arshape, sheight, fpy){
     if (!cflag){
         var mintp = [];
         var minbp = [];
-        var cc = 999999999;
+        var lx = 0;
+        var cc = 0;
         for (ari in arshape){
-            if (ari!=(arshape.length-1) && ((arshape[ari][1]-fpy)*(arshape[parseInt(ari)+1][1]-fpy))<0 && (Math.abs(arshape[ari][1]-fpy)+Math.abs(arshape[parseInt(ari)+1][1]-fpy))<cc && (arshape[ari][0]>(awidth/2 + minwx) || arshape[parseInt(ari)+1][0]>(awidth/2 + minwx))){
+             if (ari==(arshape.length-1)){
+                break;
+            }
+            // point ari -> ari+1 line cross y=fpy
+            lx = (arshape[ari][0]*arshape[parseInt(ari)+1][1]-arshape[parseInt(ari)+1][0]*arshape[ari][1]-(arshape[ari][0]-arshape[parseInt(ari)+1][0])*fpy)/(arshape[parseInt(ari)+1][1]-arshape[ari][1]);
+            // is lx between ari and ari+1, is fpy between ari and ari+1, is lx max
+            if (((arshape[ari][1]-fpy)*(arshape[parseInt(ari)+1][1]-fpy))<0 && ((arshape[ari][0]-lx)*(arshape[parseInt(ari)+1][0]-lx))<0 && lx>cc){
                 if (arshape[ari][1]>arshape[parseInt(ari)+1][1]){
                     mintp = arshape[ari];
                     minbp = arshape[parseInt(ari)+1];
@@ -141,16 +157,17 @@ function getlastpoint(arshape, sheight, fpy){
                     mintp = arshape[parseInt(ari)+1];
                     minbp = arshape[ari];
                 }
+                cc = lx;
             }
         }
         //get maxfx from line formula
         var maxfx1 = (minbp[0]*mintp[1]-mintp[0]*minbp[1]-(minbp[0]-mintp[0])*fpy)/(mintp[1]-minbp[1]);
         var maxfx2 = (minbp[0]*mintp[1]-mintp[0]*minbp[1]-(minbp[0]-mintp[0])*(fpy+sheight))/(mintp[1]-minbp[1]);
         if (maxfx1<maxfx2){
-            maxfx = maxfx1;
+            maxfx = maxfx2;
         }
         else {
-            maxfx = maxfx2;
+            maxfx = maxfx1;
         }
     }
     maxfx = Math.ceil(maxfx);
