@@ -2,6 +2,13 @@ var ctx;
 
 function shapeinside(element, shape, options){
     var sheight = 16;
+    if ('lineheight' in options){
+        sheight = options['lineheight'];
+    }
+    var withoutline = false;
+    if ('withoutline' in options){
+        withoutline = options['withoutline'];
+    }
     var currentelement = document.getElementById(element);
     var myshape = shape.replace('polygon(', '');
     myshape = myshape.replace(')', '');
@@ -9,23 +16,29 @@ function shapeinside(element, shape, options){
     var arshape = [];
     var ts = '';
     for (si in myshape){
-        ts = myshape[si].split(',');
-        arshape.push([parseInt(ts[0]), parseInt(ts[1])]);
+        if (myshape[si]!=''){
+          ts = myshape[si].split(',');
+          arshape.push([parseInt(ts[0]), parseInt(ts[1])]);
+        }
+    }
+    var mywidth = currentelement.offsetWidth;
+    var myheight = currentelement.offsetHeight;
+    if (arshape.length==0){
+        arshape = [[0, 0], [mywidth, 0], [mywidth, myheight], [0, myheight], [0, 0]];
     }
     var shapetext = currentelement.innerHTML;
     shapetext = shapetext.split(' ');
-    var mywidth = currentelement.offsetWidth;
-    var myheight = currentelement.offsetHeight;
     currentelement.innerHTML = '<canvas id="shape-inside-canvas" width="'+mywidth+'" height="'+myheight+'"></canvas>';
     var c=document.getElementById("shape-inside-canvas");
     ctx=c.getContext("2d");
-    drawshape(arshape);
+    if (withoutline){
+      drawshape(arshape);
+    }
     var fpy = getfpy(arshape);
     var pshapetext = [];
     while (shapetext.length){
       var fp = getfirstpoint(arshape, sheight, fpy);
       var lp = getlastpoint(arshape, sheight, fpy);
-      console.log([fp, lp]);
       if (isNaN(fp[0])){
         fp[0] = 0;
       }
