@@ -9,6 +9,11 @@ function shapeinside(element, shape, options){
     if ('withoutline' in options){
         withoutline = options['withoutline'];
     }
+    var withredline = 20;
+    if ('withredline' in options){
+        withredline = options['withredline'];
+    }
+    var redline = true;
     var currentelement = document.getElementById(element);
     var myshape = shape.replace('polygon(', '');
     myshape = myshape.replace(')', '');
@@ -26,7 +31,7 @@ function shapeinside(element, shape, options){
     if (arshape.length==0){
         arshape = [[0, 0], [mywidth, 0], [mywidth, myheight], [0, myheight], [0, 0]];
     }
-    var shapetext = currentelement.innerHTML;
+    var shapetext = currentelement.innerHTML.replace(/\r\n/g, '\n').replace(/\n/g, '\n ');
     shapetext = shapetext.split(' ');
     currentelement.innerHTML = '<canvas id="shape-inside-canvas" width="'+mywidth+'" height="'+myheight+'"></canvas>';
     var c=document.getElementById("shape-inside-canvas");
@@ -46,7 +51,9 @@ function shapeinside(element, shape, options){
         lp[0] = mywidth;
       }
       pshapetext = shapetext;
-      shapetext = drawline(fp, lp, sheight, arshape, shapetext);
+      shapetext = drawline(fp, lp, sheight, arshape, shapetext, redline, withredline);
+      redline = shapetext[1];
+      shapetext = shapetext[0];
       fpy = fpy+sheight;
     }
 }
@@ -187,16 +194,24 @@ function getlastpoint(arshape, sheight, fpy){
     return [maxfx, fpy];
 }
 
-function drawline(fp, lp, sheight, arshape, shapetext){
+function drawline(fp, lp, sheight, arshape, shapetext, redline, withredline){
     var countWords = shapetext.length;
     var line = "";
+    var redx = 0;
+    if (redline && withredline){
+        redx = withredline;
+        redline = false;
+    }
     var counter = 0;
     for (var n = 0; n < countWords; n++) {
         ctx.font = 'normal '+sheight+'px Tahoma';
         var testLine = line + shapetext[n] + " ";
         var testWidth = ctx.measureText(testLine).width;
-        if (testWidth>(lp[0]-fp[0]) || /\r|\n/.exec(line)){
-            ctx.fillText(line, fp[0], fp[1]+sheight);
+        if (testWidth>(lp[0]-fp[0]-redx) || /\r|\n/.exec(line)){
+            if (/\r|\n/.exec(line) || line==''){
+                redline = true;
+            }
+            ctx.fillText(line, fp[0]+redx, fp[1]+sheight);
             counter = n;
             break;
         }
@@ -204,11 +219,11 @@ function drawline(fp, lp, sheight, arshape, shapetext){
             line = testLine;
         }
         if (n==(countWords-1)){
-            ctx.fillText(line, fp[0], fp[1]+sheight);
+            ctx.fillText(line, fp[0]+redx, fp[1]+sheight);
             counter = n+1;
         }
     }
-    return shapetext.slice(counter);
+    return [shapetext.slice(counter), redline];
 }
 
 function getfpy(arshape){
