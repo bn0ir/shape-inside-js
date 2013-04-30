@@ -13,6 +13,10 @@ function shapeinside(element, shape, options){
     if ('withredline' in options){
         withredline = options['withredline'];
     }
+    var fontface = 'Tahoma';
+    if ('fontface' in options){
+        fontface = options['fontface'];
+    }
     var redline = true;
     var currentelement = document.getElementById(element);
     var myshape = shape.replace('polygon(', '');
@@ -51,7 +55,7 @@ function shapeinside(element, shape, options){
         lp[0] = mywidth;
       }
       pshapetext = shapetext;
-      shapetext = drawline(fp, lp, sheight, arshape, shapetext, redline, withredline);
+      shapetext = drawline(fp, lp, sheight, arshape, shapetext, redline, withredline, fontface);
       redline = shapetext[1];
       shapetext = shapetext[0];
       fpy = fpy+sheight;
@@ -194,7 +198,7 @@ function getlastpoint(arshape, sheight, fpy){
     return [maxfx, fpy];
 }
 
-function drawline(fp, lp, sheight, arshape, shapetext, redline, withredline){
+function drawline(fp, lp, sheight, arshape, shapetext, redline, withredline, fontface){
     var countWords = shapetext.length;
     var line = "";
     var redx = 0;
@@ -204,7 +208,7 @@ function drawline(fp, lp, sheight, arshape, shapetext, redline, withredline){
     }
     var counter = 0;
     for (var n = 0; n < countWords; n++) {
-        ctx.font = 'normal '+sheight+'px Tahoma';
+        ctx.font = 'normal '+sheight+'px '+fontface;
         var testLine = line + shapetext[n] + " ";
         var testWidth = ctx.measureText(testLine).width;
         if (testWidth>(lp[0]-fp[0]-redx) || /\r|\n/.exec(line)){
